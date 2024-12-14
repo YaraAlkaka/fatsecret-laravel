@@ -13,16 +13,15 @@ class ServiceProvider extends IlluminateServiceProvider
      */
     protected $defer = false;
 
+    /**
+     * Register bindings in the container.
+     */
     public function register()
     {
         $this->mergeConfigFrom($this->configPath(), 'fatsecret');
-    }
 
-    public function boot()
-    {
-        $this->publishes([$this->configPath() => config_path('fatsecret.php')], 'config');
-
-        $this->app['fatsecret'] = $this->app->share(function ($app) {
+        // Use singleton instead of the deprecated share method
+        $this->app->singleton('fatsecret', function ($app) {
             $oauth = new OAuthBase();
 
             $oauth->setSecret(config('fatsecret.secret'));
@@ -44,11 +43,29 @@ class ServiceProvider extends IlluminateServiceProvider
         });
     }
 
+    /**
+     * Bootstrap any application services.
+     */
+    public function boot()
+    {
+        $this->publishes([$this->configPath() => config_path('fatsecret.php')], 'config');
+    }
+
+    /**
+     * Get the services provided by the provider.
+     *
+     * @return array
+     */
     public function provides()
     {
         return ['fatsecret'];
     }
 
+    /**
+     * Get the path to the configuration file.
+     *
+     * @return string
+     */
     protected function configPath()
     {
         return __DIR__.'/../config/fatsecret.php';
